@@ -1,0 +1,49 @@
+name: 'Terraform CI/CD Pipeline'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  terraform:
+    name: 'Terraform Deploy'
+    runs-on: ubuntu-latest
+
+    # Permisos necesarios para autenticar con GCP mediante OIDC (o puedes usar Secrets tradicionales)
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 1. Configurar Terraform en el runner de GitHub
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.7.0"
+
+    # 2. Autenticación en Google Cloud (Usaremos un Secret de GitHub con tu Service Account en Base64 o JSON)
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    # 3. Terraform Init (Inicializa proveedores y módulos)
+    - name: Terraform Init
+      run: terraform init
+
+    # 4. Terraform Validate (Verifica sintaxis)
+    - name: Terraform Validate
+      run: terraform validate
+
+    # 5. Terraform Plan (Muestra qué cambios se van a aplicar)
+    - name: Terraform Plan
+      run: terraform plan -var="project_id=${{ secrets.GCP_PROJECT_ID }}"
+
+    # 6. Terraform Apply (Aplica los cambios automáticamente solo si es la rama main y es un push)
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -var="project_id=${{ secrets.GCP_PROJECT_ID }}"
