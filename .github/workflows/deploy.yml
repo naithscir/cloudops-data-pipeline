@@ -11,10 +11,11 @@ jobs:
     name: 'Terraform Deploy'
     runs-on: ubuntu-latest
 
-    # Permisos necesarios para autenticar con GCP mediante OIDC (o puedes usar Secrets tradicionales)
+    # Permisos necesarios para autenticar con GCP mediante OIDC. Deben ser permisos explisitos.
     permissions:
       contents: read
-
+      id-token: write
+      
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
