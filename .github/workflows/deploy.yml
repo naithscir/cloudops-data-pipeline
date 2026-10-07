@@ -26,10 +26,11 @@ jobs:
         terraform_version: "1.7.0"
 
     # 2. Autenticación en Google Cloud (Usaremos un Secret de GitHub con tu Service Account en Base64 o JSON)
-    - name: Authenticate to Google Cloud
+    - name: Authenticate to Google Cloud via WIF
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
     # 3. Terraform Init (Inicializa proveedores y módulos)
     - name: Terraform Init
