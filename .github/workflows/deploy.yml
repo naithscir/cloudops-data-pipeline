@@ -25,6 +25,15 @@ jobs:
       with:
         terraform_version: "1.7.0"
 
+    - name: Verificar secretos
+      run: |
+        if [ -z "${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}" ]; then
+          echo "ERROR: El secreto GCP_WORKLOAD_IDENTITY_PROVIDER está vacío o no es accesible."
+          exit 1
+        else
+          echo "El secreto se lee correctamente."
+        fi
+
     # 2. Autenticación en Google Cloud (Usaremos un Secret de GitHub con tu Service Account en Base64 o JSON)
     - name: Authenticate to Google Cloud via WIF
       uses: google-github-actions/auth@v2
