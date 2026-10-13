@@ -3,13 +3,9 @@ import os
 import socket
 
 import psutil
-from google.cloud import bigquery
+import requests
 
-
-PROJECT_ID = "project-0d90f606-e1f3-4782-b8e"
-DATASET_ID = "ops_automation_dataset"
-TABLE_ID = "metricas_servidores"
-
+API_URL = "http://127.0.0.1:8000/metricas"
 
 def obtener_metricas():
     cpu = psutil.cpu_percent(interval=1)
@@ -36,20 +32,16 @@ def obtener_metricas():
     }
 
 
-def insertar_en_bigquery(metrica):
-    client = bigquery.Client(project=PROJECT_ID)
-
-    tabla = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
-
-    errores = client.insert_rows_json(
-        tabla,
-        [metrica],
+def enviar_metrica(metrica):
+    respuesta = requests.post(
+        API_URL,
+        json=metrica,
+        timeout=10
     )
 
-    if errores:
-        raise RuntimeError(
-            f"Error insertando datos en BigQuery: {errores}"
-        )
+    respuesta.raise_for_status()
+
+    return respuesta.json()
 
 
 if __name__ == "__main__":
@@ -58,6 +50,8 @@ if __name__ == "__main__":
     print("Métrica obtenida desde el equipo local:")
     print(metrica)
 
-    insertar_en_bigquery(metrica)
+    resultado = enviar_metrica(metrica)
 
-    print("Métrica insertada correctamente en BigQuery.")
+    print("Respuesta de la API:")
+    print(resultado)
+    
